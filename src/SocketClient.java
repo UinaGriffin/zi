@@ -11,7 +11,8 @@ import java.util.StringTokenizer;
 
 public class SocketClient {
     private static final boolean FILE_INPUT_ENABLED = false;
-    private static final String DEFAULT_FILE_NAME = "";
+    private static final String INPUT_FILE_NAME = "";
+    private static final String OUTPUT_FILE_NAME = "";
 
 
     public static void main(String args[]) throws IOException {
@@ -36,7 +37,7 @@ public class SocketClient {
                 wordToSend = ((String) sendTokenizer.nextElement()).intern();
 
                 if(wordToSend.equals("quit"))break;
-                if(wordToSend.equals("file")) wordToSend = readTextFile(DEFAULT_FILE_NAME).get(0);
+                if(wordToSend.equals("file")) wordToSend = readTextFile(INPUT_FILE_NAME).get(0);
 
                 System.out.println(">  " + wordToSend);
 
@@ -51,7 +52,7 @@ public class SocketClient {
                 sendTokenizer = new StringTokenizer(new String(buf, 0), ""+(char)0);
                 wordReceived = ((String) sendTokenizer.nextElement()).intern();
                 System.out.println(">> " + wordReceived);
-                if(FILE_INPUT_ENABLED) writeTextFile(DEFAULT_FILE_NAME,wordReceived);
+                if(FILE_INPUT_ENABLED) writeTextFile(OUTPUT_FILE_NAME,wordReceived);
             }
         }
         is.close();

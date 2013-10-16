@@ -1,26 +1,17 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 public class SocketClient {
-
-
-    static void readLargerTextFileAlternate(String aFileName) throws IOException {
-        Path path = Paths.get(aFileName);
-        try (BufferedReader reader = Files.newBufferedReader(path, Charset.forName("UTF-8"))){
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-            }
-        }
-    }
+    private static final boolean FILE_INPUT_ENABLED = false;
+    private static final String DEFAULT_FILE_NAME = "";
 
 
     public static void main(String args[]) throws IOException {
@@ -35,7 +26,7 @@ public class SocketClient {
         String wordReceived;
         StringTokenizer sendTokenizer;
 
-        System.out.println("Socket Client Application\nEnter any string or 'quit' to exit...");
+        System.out.println("Socket Client Application\nEnter any string or 'quit' to exit...\nEnter 'file' to read from file");
 
         while (true) {
             length = System.in.read(consoleInputBytes);
@@ -45,6 +36,7 @@ public class SocketClient {
                 wordToSend = ((String) sendTokenizer.nextElement()).intern();
 
                 if(wordToSend.equals("quit"))break;
+                if(wordToSend.equals("file")) wordToSend = readTextFile(DEFAULT_FILE_NAME).get(0);
 
                 System.out.println(">  " + wordToSend);
 
@@ -59,11 +51,34 @@ public class SocketClient {
                 sendTokenizer = new StringTokenizer(new String(buf, 0), ""+(char)0);
                 wordReceived = ((String) sendTokenizer.nextElement()).intern();
                 System.out.println(">> " + wordReceived);
-
+                if(FILE_INPUT_ENABLED) writeTextFile(DEFAULT_FILE_NAME,wordReceived);
             }
         }
         is.close();
         os.close();
         s.close();
+    }
+
+
+    static List<String> readTextFile(String aFileName) throws IOException {
+        List<String> result = new ArrayList<>();
+
+        Path path = Paths.get(aFileName);
+        try (BufferedReader reader = Files.newBufferedReader(path, Charset.forName("UTF-8"))){
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result.add(line);
+            }
+        }
+
+        return result;
+    }
+
+    static void writeTextFile(String aFileName, String line) throws IOException {
+        Path path = Paths.get(aFileName);
+        try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"), StandardOpenOption.APPEND)){
+            writer.append(line);
+            writer.flush();
+        }
     }
 }

@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class SocketClient {
@@ -23,51 +24,42 @@ public class SocketClient {
 
 
     public static void main(String args[]) throws IOException {
-        byte bKbdInput[] = new byte[256];
-        Socket s;
-        InputStream is;
-        OutputStream os;
 
-        System.out.println(
-                "Socket Client Application" +
-                        "\nEnter any string or" +
-                        " 'quit' to exit...");
-
-
-        s = new Socket("localhost", 9999);
-        is = s.getInputStream();
-        os = s.getOutputStream();
-        byte buf[] = new byte[512];
+        byte consoleInputBytes[] = new byte[256];
+        Socket s = new Socket("localhost", 9999);
+        InputStream is = s.getInputStream();
+        OutputStream os = s.getOutputStream();
+        byte buf[];
         int length;
-        String str;
+        String wordToSend;
+        String wordReceived;
+        StringTokenizer sendTokenizer;
+
+        System.out.println("Socket Client Application\nEnter any string or 'quit' to exit...");
 
         while (true) {
-            length = System.in.read(bKbdInput);
+            length = System.in.read(consoleInputBytes);
             if (length != 1) {
-                str = new String(bKbdInput, 0);
 
-                StringTokenizer st;
-                st = new StringTokenizer(
-                        str, "\r\n");
-                str = ((String) st.nextElement()).intern();
+                sendTokenizer = new StringTokenizer(new String(consoleInputBytes, 0), "\r\n");
+                wordToSend = ((String) sendTokenizer.nextElement()).intern();
 
-                System.out.println(">  " + str);
+                if(wordToSend.equals("quit"))break;
 
-                os.write(bKbdInput, 0, length);
+                System.out.println(">  " + wordToSend);
+
+                os.write(consoleInputBytes, 0, length);
                 os.flush();
 
+                buf = new byte[512];
                 length = is.read(buf);
                 if (length == -1)
                     break;
 
-                str = new String(buf, 0);
-                st = new StringTokenizer(
-                        str, "\r\n");
-                str = ((String) st.nextElement()).intern();
-                System.out.println(">> " + str);
+                sendTokenizer = new StringTokenizer(new String(buf, 0), ""+(char)0);
+                wordReceived = ((String) sendTokenizer.nextElement()).intern();
+                System.out.println(">> " + wordReceived);
 
-                if (str.equals("quit"))
-                    break;
             }
         }
         is.close();

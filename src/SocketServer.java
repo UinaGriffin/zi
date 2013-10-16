@@ -1,43 +1,59 @@
+import wordchecker.ConsonantChecker;
+import wordchecker.WordChecker;
+import wordchecker.WordCheckerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class SocketServer {
+    private final static boolean DIFFERENT_MODES_ENABLED = false;
+
     public static void main(String args[]) throws IOException {
-        ServerSocket serverSocket = null;
-        Socket socket;
-        InputStream is;
-        OutputStream os;
-
-        System.out.println("Socket Server Application");
-
-        serverSocket = new ServerSocket(9999);
-        socket = serverSocket.accept();
-        is = socket.getInputStream();
-        os = socket.getOutputStream();
+        ServerSocket serverSocket = new ServerSocket(9999);
+        Socket socket = serverSocket.accept();
+        InputStream is = socket.getInputStream();
+        OutputStream os = socket.getOutputStream();
         byte buf[] = new byte[512];
         int length;
-       String result;
+        String result;
+        String processMode;
+        String stringReceived;
+        String word;
+        WordChecker checker;
+        StringTokenizer modeTokenizer;
+        StringTokenizer receiveTokenizer;
 
+        System.out.println("Socket Server Application");
 
         while (true) {
             length = is.read(buf);
             if (length == -1)
                 break;
 
-            String str = new String(buf, 0);
+            stringReceived = new String(buf, 0);
+            receiveTokenizer = new StringTokenizer(stringReceived, "\r\n");
+            stringReceived = receiveTokenizer.nextToken();
 
-            StringTokenizer st;
-            st = new StringTokenizer(str, "\r\n");
-            str = ((String) st.nextElement()).intern();
 
-            result = str;
+            if (DIFFERENT_MODES_ENABLED) {
+                modeTokenizer = new StringTokenizer(stringReceived, "/");
+                processMode = (String) modeTokenizer.nextElement();
+                word = (String) modeTokenizer.nextElement();
+                checker = WordCheckerFactory.getWordChecker(processMode);
+            }else{
+                word = stringReceived;
+                checker = new ConsonantChecker();
+            }
+
+            result = checker.check(word);
 
             System.out.println(">  " + result);
-            os.write(buf, 0, length);
+            os.write(result.getBytes(), 0, result.getBytes().length);
             os.flush();
         }
 
@@ -45,7 +61,5 @@ public class SocketServer {
         os.close();
         socket.close();
         serverSocket.close();
-
-
     }
 }

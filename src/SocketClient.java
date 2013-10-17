@@ -9,6 +9,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import static util.SocketManager.*;
 
 public class SocketClient {
     private static final boolean FILE_INPUT_ENABLED = false;
@@ -75,23 +76,6 @@ public class SocketClient {
 
     }
 
-    private static void sendWord(OutputStream os, String wordToSend) throws IOException {
-        os.write(wordToSend.getBytes(), 0, wordToSend.getBytes().length);
-        os.flush();
-    }
-
-
-    private static String receiveWord(InputStream is) throws IOException {
-        StringTokenizer sendTokenizer;
-        byte[] buf = new byte[512];
-
-        is.read(buf);
-        if (buf.length == -1)
-            throw new SocketException("No response from client");
-
-        sendTokenizer = new StringTokenizer(new String(buf, 0), "" + (char) 0);
-        return (String) sendTokenizer.nextElement();
-    }
 
 
     static List<String> readTextFile(String aFileName) throws IOException {

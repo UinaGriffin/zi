@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.StringTokenizer;
+import static util.SocketManager.receiveWord;
 
 public class SocketServer {
     private final static boolean DIFFERENT_MODES_ENABLED = false;
@@ -30,35 +30,26 @@ public class SocketServer {
         System.out.println("Socket Server Application");
 
         while (true) {
-            is.read(buf);
-            if (buf.length == -1)
-                break;
+            stringReceived = receiveWord(is);
+            if (stringReceived != null) {
 
-            stringReceived = new String(buf, 0);
-            receiveTokenizer = new StringTokenizer(stringReceived, "\r\n");
-            stringReceived = receiveTokenizer.nextToken();
+                if (DIFFERENT_MODES_ENABLED) {
+                    modeTokenizer = new StringTokenizer(stringReceived, "/");
+                    processMode = (String) modeTokenizer.nextElement();
+                    word = (String) modeTokenizer.nextElement();
+                    checker = WordCheckerFactory.getWordChecker(processMode);
+                } else {
+                    word = stringReceived;
+                    checker = new ConsonantChecker();
+                }
 
+                result = checker.check(word);
 
-            if (DIFFERENT_MODES_ENABLED) {
-                modeTokenizer = new StringTokenizer(stringReceived, "/");
-                processMode = (String) modeTokenizer.nextElement();
-                word = (String) modeTokenizer.nextElement();
-                checker = WordCheckerFactory.getWordChecker(processMode);
-            }else{
-                word = stringReceived;
-                checker = new ConsonantChecker();
+                System.out.println(">  " + result);
+                os.write(result.getBytes(), 0, result.getBytes().length);
+                os.flush();
             }
-
-            result = checker.check(word);
-
-            System.out.println(">  " + result);
-            os.write(result.getBytes(), 0, result.getBytes().length);
-            os.flush();
         }
-
-        is.close();
-        os.close();
-        socket.close();
-        serverSocket.close();
     }
+
 }

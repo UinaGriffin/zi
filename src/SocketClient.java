@@ -66,12 +66,13 @@ public class SocketClient {
 
     private static String getFirstWordFromConsole() throws IOException {
         byte consoleInputBytes[] = new byte[256];
-        StringTokenizer sendTokenizer;
+        StringTokenizer stringTokenizer;
+        int length;
 
-        System.in.read(consoleInputBytes);
-        if (consoleInputBytes.length != 1) {
-            sendTokenizer = new StringTokenizer(new String(consoleInputBytes, 0), "\r\n");
-            return (String) sendTokenizer.nextElement();
+        length = System.in.read(consoleInputBytes);
+        if (length != 1) {
+            stringTokenizer = new StringTokenizer(new String(consoleInputBytes, 0), "\r\n");
+            return (String) stringTokenizer.nextElement();
         } else return null;
 
     }

@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,49 +15,82 @@ public class SocketClient {
     private static final String INPUT_FILE_NAME = "";
     private static final String OUTPUT_FILE_NAME = "";
 
+    private static int wordInFile = 0;
+
 
     public static void main(String args[]) throws IOException {
-
-        byte consoleInputBytes[] = new byte[256];
         Socket s = new Socket("localhost", 9999);
         InputStream is = s.getInputStream();
         OutputStream os = s.getOutputStream();
-        byte buf[];
         String wordToSend;
         String wordReceived;
-        StringTokenizer sendTokenizer;
 
-        System.out.println("Socket Client Application\nEnter any string or 'quit' to exit...\nEnter 'file' to read from file");
+        outputInstructions();
 
         while (true) {
-            System.in.read(consoleInputBytes);
-            if (consoleInputBytes.length != 1) {
+            wordToSend = getFirstWordFromConsole();
+            if (wordToSend != null) {
+                wordToSend = manageCommands(wordToSend);
+                outputWordToSend(wordToSend);
+                sendWord(os, wordToSend);
 
-                sendTokenizer = new StringTokenizer(new String(consoleInputBytes, 0), "\r\n");
-                wordToSend = ((String) sendTokenizer.nextElement()).intern();
-
-                if(wordToSend.equals("quit"))break;
-                if(wordToSend.equals("file")) wordToSend = readTextFile(INPUT_FILE_NAME).get(0);
-
-                System.out.println(">  " + wordToSend);
-
-                os.write(consoleInputBytes, 0, consoleInputBytes.length);
-                os.flush();
-
-                buf = new byte[512];
-                is.read(buf);
-                if (buf.length == -1)
-                    break;
-
-                sendTokenizer = new StringTokenizer(new String(buf, 0), ""+(char)0);
-                wordReceived = ((String) sendTokenizer.nextElement()).intern();
-                System.out.println(">> " + wordReceived);
-                if(FILE_INPUT_ENABLED) writeTextFile(OUTPUT_FILE_NAME,wordReceived);
+                wordReceived = receiveWord(is);
+                outputReceivedWord(wordReceived);
             }
         }
-        is.close();
-        os.close();
-        s.close();
+    }
+
+    private static void outputInstructions() {
+        System.out.println("Socket Client Application\nEnter any string or 'quit' to exit...");
+        if (FILE_INPUT_ENABLED) System.out.println("Enter 'file' to read from file");
+    }
+
+    private static String manageCommands(String wordToSend) throws IOException {
+        if (wordToSend.equals("quit")) throw new SocketException("Exiting application");
+        if (wordToSend.equals("file") && FILE_INPUT_ENABLED) {
+            wordToSend = readTextFile(INPUT_FILE_NAME).get(wordInFile);
+            wordInFile++;
+        }
+        return wordToSend;
+    }
+
+    private static void outputWordToSend(String wordToSend) {
+        System.out.println(">  " + wordToSend);
+    }
+
+    private static void outputReceivedWord(String wordReceived) throws IOException {
+        System.out.println(">> " + wordReceived);
+        if (FILE_INPUT_ENABLED) writeTextFile(OUTPUT_FILE_NAME, wordReceived);
+    }
+
+    private static String getFirstWordFromConsole() throws IOException {
+        byte consoleInputBytes[] = new byte[256];
+        StringTokenizer sendTokenizer;
+
+        System.in.read(consoleInputBytes);
+        if (consoleInputBytes.length != 1) {
+            sendTokenizer = new StringTokenizer(new String(consoleInputBytes, 0), "\r\n");
+            return (String) sendTokenizer.nextElement();
+        } else return null;
+
+    }
+
+    private static void sendWord(OutputStream os, String wordToSend) throws IOException {
+        os.write(wordToSend.getBytes(), 0, wordToSend.getBytes().length);
+        os.flush();
+    }
+
+
+    private static String receiveWord(InputStream is) throws IOException {
+        StringTokenizer sendTokenizer;
+        byte[] buf = new byte[512];
+
+        is.read(buf);
+        if (buf.length == -1)
+            throw new SocketException("No response from client");
+
+        sendTokenizer = new StringTokenizer(new String(buf, 0), "" + (char) 0);
+        return (String) sendTokenizer.nextElement();
     }
 
 
@@ -64,7 +98,7 @@ public class SocketClient {
         List<String> result = new ArrayList<>();
 
         Path path = Paths.get(aFileName);
-        try (BufferedReader reader = Files.newBufferedReader(path, Charset.forName("UTF-8"))){
+        try (BufferedReader reader = Files.newBufferedReader(path, Charset.forName("UTF-8"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 result.add(line);
@@ -76,7 +110,7 @@ public class SocketClient {
 
     static void writeTextFile(String aFileName, String line) throws IOException {
         Path path = Paths.get(aFileName);
-        try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"), StandardOpenOption.APPEND)){
+        try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"), StandardOpenOption.APPEND)) {
             writer.append(line);
             writer.flush();
         }

@@ -19,7 +19,6 @@ public class SocketServer {
         InputStream is = socket.getInputStream();
         OutputStream os = socket.getOutputStream();
         byte buf[] = new byte[512];
-        int length;
         String result;
         String processMode;
         String stringReceived;
@@ -31,8 +30,8 @@ public class SocketServer {
         System.out.println("Socket Server Application");
 
         while (true) {
-            length = is.read(buf);
-            if (length == -1)
+            is.read(buf);
+            if (buf.length == -1)
                 break;
 
             stringReceived = new String(buf, 0);

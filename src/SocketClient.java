@@ -22,7 +22,6 @@ public class SocketClient {
         InputStream is = s.getInputStream();
         OutputStream os = s.getOutputStream();
         byte buf[];
-        int length;
         String wordToSend;
         String wordReceived;
         StringTokenizer sendTokenizer;
@@ -30,8 +29,8 @@ public class SocketClient {
         System.out.println("Socket Client Application\nEnter any string or 'quit' to exit...\nEnter 'file' to read from file");
 
         while (true) {
-            length = System.in.read(consoleInputBytes);
-            if (length != 1) {
+            System.in.read(consoleInputBytes);
+            if (consoleInputBytes.length != 1) {
 
                 sendTokenizer = new StringTokenizer(new String(consoleInputBytes, 0), "\r\n");
                 wordToSend = ((String) sendTokenizer.nextElement()).intern();
@@ -41,12 +40,12 @@ public class SocketClient {
 
                 System.out.println(">  " + wordToSend);
 
-                os.write(consoleInputBytes, 0, length);
+                os.write(consoleInputBytes, 0, consoleInputBytes.length);
                 os.flush();
 
                 buf = new byte[512];
-                length = is.read(buf);
-                if (length == -1)
+                is.read(buf);
+                if (buf.length == -1)
                     break;
 
                 sendTokenizer = new StringTokenizer(new String(buf, 0), ""+(char)0);

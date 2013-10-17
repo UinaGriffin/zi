@@ -8,7 +8,9 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.StringTokenizer;
+
 import static util.SocketManager.receiveWord;
+import static util.SocketManager.sendWord;
 
 public class SocketServer {
     private final static boolean DIFFERENT_MODES_ENABLED = false;
@@ -18,14 +20,12 @@ public class SocketServer {
         Socket socket = serverSocket.accept();
         InputStream is = socket.getInputStream();
         OutputStream os = socket.getOutputStream();
-        byte buf[] = new byte[512];
         String result;
         String processMode;
         String stringReceived;
         String word;
         WordChecker checker;
         StringTokenizer modeTokenizer;
-        StringTokenizer receiveTokenizer;
 
         System.out.println("Socket Server Application");
 
@@ -46,8 +46,7 @@ public class SocketServer {
                 result = checker.check(word);
 
                 System.out.println(">  " + result);
-                os.write(result.getBytes(), 0, result.getBytes().length);
-                os.flush();
+                sendWord(os, result);
             }
         }
     }
